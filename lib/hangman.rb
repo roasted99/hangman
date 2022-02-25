@@ -1,4 +1,5 @@
 require 'json'
+require 'rainbow'
 
 module RandomWord
   
@@ -63,59 +64,63 @@ class Game
   attr_accessor :word_to_match, :word_to_guess, :wrong_guess_count, :wrong_guess
 
   def play_game 
-    puts word_to_match.to_s
+    
     loop do
       puts "#{word_to_guess}"
-      puts "Wrong guess characters: #{wrong_guess.join(', ')}  Chance left: #{wrong_guess_count}"
+      puts "Wrong guess characters: \"#{Rainbow(wrong_guess.join(', ')).indianred.bright}\"  Chance left: #{Rainbow(wrong_guess_count.to_s).yellow}"
       print "Guess a character or type 'save' to save the game : "
       guess_char = gets.chomp.to_s.downcase
+      
       if word_to_match.include?(guess_char)
         correct_guess(guess_char)
-      
       elsif guess_char == 'save'
         self.save_game
         return
-      elsif word_to_guess == word_to_match
-          puts "Congratulation! You've guessed it!"
       elsif guess_char.length != 1
-        puts "Wrong input! Please enter one character only."
+        puts Rainbow("Wrong input! Please enter one character only.").red.bright    
       else 
           incorrect_guess(guess_char)
       end
     end
   end
   
-  def game_over
-    puts "Game Over. Press A if you want to try again."
-      try_again = gets
-      try_again.upcase
-      if try_again == 'A' 
-        play_game
+  def try_again
+      try_again = gets.chomp.to_s.downcase
+     
+      if try_again == 't' 
+        new_game = Game.new
+        new_game.play_game
       else
-        puts "Command is not regonized. Press A to try again."
+        puts "Command is not regonized. Press 'a' to try again."
+        self.try_again
       end
   end
 
   def correct_guess(char)
-    puts "Correct guess!"
+    puts Rainbow("Correct guess!").green
     i = 0
     while i <= word_to_match.to_s.length do
       word_to_guess[i] = char if word_to_match[i] == char
       i += 1
       word_to_guess
     end
+   if word_to_guess == word_to_match
+      puts "Congratulation! You've guessed it! Press 't' if you want to try again."
+      self.try_again
+   end
     
   end
 
   def incorrect_guess(char)
-    puts "Opps! Wrong guess!"
+    puts Rainbow("Opps! Wrong guess!").red
     wrong_guess.push(char)
     @wrong_guess_count -= 1
     word_to_guess
     if wrong_guess_count == 1
-      puts "Choose carefully. This is your last chance."
+      puts Rainbow("Choose carefully. This is your last chance.").indianred.bright
     elsif wrong_guess_count == 0
-      self.game_over
+      puts Rainbow("You are out of move. Press 't' if you want to try again.").red.bright
+      self.try_again
     end
   end
 

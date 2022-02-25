@@ -69,7 +69,7 @@ class Game
       puts "#{word_to_guess}"
       puts "Wrong guess characters: \"#{Rainbow(wrong_guess.join(', ')).indianred.bright}\"  Chance left: #{Rainbow(wrong_guess_count.to_s).yellow}"
       print "Guess a character or type 'save' to save the game : "
-      guess_char = gets.chomp.to_s.downcase
+      guess_char = gets.to_s.downcase
       
       if word_to_match.include?(guess_char)
         correct_guess(guess_char)
@@ -112,7 +112,7 @@ class Game
   end
 
   def incorrect_guess(char)
-    puts Rainbow("Opps! Wrong guess!").red
+    puts Rainbow("Oops! Wrong guess!").red
     wrong_guess.push(char)
     @wrong_guess_count -= 1
     word_to_guess

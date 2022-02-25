@@ -15,50 +15,31 @@ module RandomWord
 
 end
 include RandomWord
-# p RandomWord.word_generator
-# module SaveGame
-  
 
-#   def to_json
-#     JSON.dump({
-#       :word_to_match => @word_to_match,
-#       :word_to_guess => @word_to_guess,
-#       :wrong_guess => @wrong_guess,
-#       :wrong_guess_count => @wrong_guess_count
-#     })
-#     end
+module LoadJson
 
-#     def self.from_json(string)
-#       data = JSON.load string
-#       self.new(data['word_to_match'], data['word_to_guess'], data['guess_char'], data['wrong_guess_count'])
-#     end
+  file_name = gets.chomp.to_s
 
-#   def save_game
-#     Dir.mkdir('save') unless Dir.exit?('save')
-    
-#     save_file = File.new("save#{num}.json", "w")
-#     save_file.puts data.to_json
-#     num = 0
-#     filename = "save/#{save_file}" unless filename.exit?
-#     num += 1
-#     save_file.close
-      
-#   end
+  def load_game
+    load_data = File.open("save/#{file_name}.json", 'w')
+    load_data.from_json
+  end
 
-#   def load_game
-#     load_data = File.open("save/save#{num}.json", 'w')
-#     load_data.from_json
-#   end
-# end
+  def from_json(string)
+    data = JSON.load string
+    Game.new(data['word_to_match'], data['word_to_guess'], data['guess_char'], data['wrong_guess_count'])
+  end
+end
+
 
 
 class Game
   include RandomWord
-  def initialize 
-    @word_to_match = RandomWord.word_generator
-    @word_to_guess = word_to_match.gsub(/[\w]/, "_")
-    @wrong_guess_count = 6
-    @wrong_guess = []
+  def initialize(word_to_match = RandomWord.word_generator, word_to_guess = word_to_match.gsub(/[\w]/, "_"), wrong_guess_count = 6, wrong_guess = [] )
+    @word_to_match = word_to_match
+    @word_to_guess = word_to_guess
+    @wrong_guess_count = wrong_guess_count
+    @wrong_guess = wrong_guess
   end
 
   attr_accessor :word_to_match, :word_to_guess, :wrong_guess_count, :wrong_guess
@@ -69,15 +50,19 @@ class Game
     p word_to_match.to_s
     loop do
       puts "#{word_to_guess}"
-      print "Guess a character: "
-      guess_char = gets.chomp.to_s
+      print "Guess a character or type 'save' to save the game : "
+      guess_char = gets.chomp.to_s.downcase
       if word_to_match.include?(guess_char)
         correct_guess(guess_char)
-        if word_to_guess == word_to_match
+        # return
+      elsif guess_char == 'save'
+        self.save_game
+        return
+      elsif word_to_guess == word_to_match
           puts "Congratulation! You've guessed it!"
-        end
-      else
-        incorrect_guess(guess_char)
+
+      else 
+          incorrect_guess(guess_char)
       end
       p "Wrong guess characters: #{wrong_guess.join(', ')}  Chance left: #{wrong_guess_count}"
     end
@@ -96,9 +81,14 @@ class Game
 
   def correct_guess(char)
     puts "Correct guess!"
-    index = word_to_match.index(char)
-    word_to_guess[index] = char
-    word_to_guess
+    i = 0
+    while i <= word_to_match.to_s.length do
+      word_to_guess[i] = char if word_to_match[i] == char
+      i += 1
+      word_to_guess
+    end
+    # index = word_to_match.index(char)
+    # word_to_guess[index] = char
     
   end
 
@@ -112,6 +102,31 @@ class Game
     elsif wrong_guess_count == 0
       self.game_over
     end
+  end
+
+  def to_json
+    JSON.dump({
+      :word_to_match => @word_to_match,
+      :word_to_guess => @word_to_guess,
+      :wrong_guess => @wrong_guess,
+      :wrong_guess_count => @wrong_guess_count
+    })
+  end
+
+  def save_game
+    Dir.mkdir('save') unless Dir.exists?('save')
+    
+    num = 0
+    file_name = "save#{num}.json"
+    if File.exist?("save/#{file_name}")
+      file_name = "save#{num + 1}.json"
+    end
+    save_file = File.open("save/#{file_name}", "w")
+    save_file.puts self.to_json
+    # filename = "save/#{file_name}" 
+    
+    save_file.close
+      
   end
 
 end
